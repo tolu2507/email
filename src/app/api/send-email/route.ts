@@ -5,6 +5,17 @@ const resend = new Resend(process.env.RESEND_API_KEY!);
 
 export async function POST(request: Request) {
   // Define CORS headers
+  const origin = request.headers.get("origin") || "";
+  const allowedOrigins = [
+    "http://localhost:3003",
+    "http://localhost:3001",
+    "http://localhost:3000",
+    "https://your-frontend.com",
+  ];
+  const corsOrigin = allowedOrigins.includes(origin)
+    ? origin
+    : allowedOrigins[0]; // Fallback to a default
+
   const headers = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "POST",
