@@ -6,7 +6,7 @@ const resend = new Resend(process.env.RESEND_API_KEY!);
 export async function POST(request: Request) {
   // Define CORS headers
   const headers = {
-    "Access-Control-Allow-Origin": "http://localhost:3001",
+    "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "POST",
     "Access-Control-Allow-Headers": "Content-Type",
   };
