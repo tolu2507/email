@@ -10,7 +10,7 @@ export async function POST(request: Request) {
     "http://localhost:3003",
     "http://localhost:3001",
     "http://localhost:3000",
-    "https://your-frontend.com",
+    "https://lischor.online", // ✅ your live site
   ];
   const corsOrigin = allowedOrigins.includes(origin)
     ? origin
@@ -117,12 +117,13 @@ export async function POST(request: Request) {
 }
 
 export async function OPTIONS() {
+  
   return NextResponse.json(
     {},
     {
       status: 200,
       headers: {
-        "Access-Control-Allow-Origin": "http://localhost:3001",
+        "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "POST",
         "Access-Control-Allow-Headers": "Content-Type",
       },
