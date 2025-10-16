@@ -43,6 +43,7 @@ export async function POST(request: Request) {
 
   try {
     const { email, message, name, service, companyname } = await request.json();
+    console.log({companyname})
     const { resend, email: receiveemail } = getResendKey(companyname);
     if (!email || !message || !name || !companyname) {
       return NextResponse.json(
