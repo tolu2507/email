@@ -1,7 +1,25 @@
 import { Resend } from "resend";
 import { NextResponse } from "next/server";
 
-const resend = new Resend(process.env.RESEND_API_KEY!);
+function getResendKey(
+  val: "megavolt" | "alfa" | "megavolt" | "atlas" | "melisa" | "nur" | "argenta"
+) {
+  const keys = {
+    argenta: { key: process.env.RESEND_API_KEY!, email: "site@argentatek.com" },
+    nur: { key: process.env.NUR!, email: "site@nuroverseas.com" },
+    melisa: { key: process.env.MELISA!, email: "site@melisa.net.tr" },
+    atlas: { key: process.env.ATLAS!, email: "site@atlas-trade.org" },
+    megavolt: {
+      key: process.env.RESEND_API_KEY!,
+      email: "site@argentatek.com",
+    },
+    alfa: { key: process.env.RESEND_API_KEY!, email: "site@argentatek.com" },
+  };
+  const { key, email } = keys[val];
+
+  const resend = new Resend(key);
+  return { resend, email };
+}
 
 export async function POST(request: Request) {
   // Define CORS headers
@@ -23,9 +41,10 @@ export async function POST(request: Request) {
   };
 
   try {
-    const { email, message, name, service,companyemail } = await request.json();
-
-    if (!email || !message || !name||!companyemail) {
+    const { email, message, name, service, companyname } =
+      await request.json();
+    const { resend, email: receiveemail } = getResendKey(companyname);
+    if (!email || !message || !name || !companyname) {
       return NextResponse.json(
         {
           success: false,
@@ -37,8 +56,8 @@ export async function POST(request: Request) {
     }
 
     const { data, error } = await resend.emails.send({
-      from: `${companyemail} <onboarding@resend.dev>`,
-      to: ["site@argentatek.com","tolulopebamisile@gmail.com", "info@nuroverseas.com"],
+      from: `${companyname} <onboarding@resend.dev>`,
+      to: [receiveemail, "tolulopebamisile@gmail.com", "info@nuroverseas.com"],
       replyTo: email,
       subject: "Enquiry Regarding Services",
       html: `
@@ -117,7 +136,6 @@ export async function POST(request: Request) {
 }
 
 export async function OPTIONS() {
-  
   return NextResponse.json(
     {},
     {
