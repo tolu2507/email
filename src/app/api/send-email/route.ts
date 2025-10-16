@@ -18,6 +18,7 @@ function getResendKey(
   const { key, email } = keys[val];
 
   const resend = new Resend(key);
+  console.log({ key, email });
   return { resend, email };
 }
 
@@ -41,8 +42,7 @@ export async function POST(request: Request) {
   };
 
   try {
-    const { email, message, name, service, companyname } =
-      await request.json();
+    const { email, message, name, service, companyname } = await request.json();
     const { resend, email: receiveemail } = getResendKey(companyname);
     if (!email || !message || !name || !companyname) {
       return NextResponse.json(
