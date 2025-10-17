@@ -10,10 +10,10 @@ function getResendKey(
     melisa: { key: process.env.MELISA!, email: "site@melisa.net.tr" },
     atlas: { key: process.env.ATLAS!, email: "site@atlas-trade.org" },
     megavolt: {
-      key: process.env.RESEND_API_KEY!,
-      email: "site@argentatek.com",
+      key: process.env.MEGAVOLT!,
+      email: "site@megavolt.com.tr",
     },
-    alfa: { key: process.env.RESEND_API_KEY!, email: "site@argentatek.com" },
+    alfa: { key: process.env.ALFA!, email: "site@alfa-trend.com.tr" },
   };
   const { key, email } = keys[val];
 
