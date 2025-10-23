@@ -2,7 +2,15 @@ import { Resend } from "resend";
 import { NextResponse } from "next/server";
 
 function getResendKey(
-  val: "megavolt" | "alfa" | "megavolt" | "atlas" | "melisa" | "nur" | "argenta"
+  val:
+    | "megavolt"
+    | "alfa"
+    | "megavolt"
+    | "atlas"
+    | "melisa"
+    | "nur"
+    | "argenta"
+    | "aegis"
 ) {
   const keys = {
     argenta: { key: process.env.RESEND_API_KEY!, email: "site@argentatek.com" },
@@ -14,6 +22,7 @@ function getResendKey(
       email: "site@megavolt.com.tr",
     },
     alfa: { key: process.env.ALFA!, email: "site@alfa-trend.com.tr" },
+    aegis: { key: process.env.AEGIS!, email: "site@aegisoverseas.ae" },
   };
   const { key, email } = keys[val];
 
@@ -43,7 +52,7 @@ export async function POST(request: Request) {
 
   try {
     const { email, message, name, service, companyname } = await request.json();
-    console.log({companyname})
+    console.log({ companyname });
     const { resend, email: receiveemail } = getResendKey(companyname);
     if (!email || !message || !name || !companyname) {
       return NextResponse.json(
@@ -123,7 +132,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         success: true,
-        message: `Message with id ${data.id} is successfully sent`,
+        message: `Your message with id: ${data.id} is sent successfully to ${companyname} .`,
       },
       { headers }
     );
