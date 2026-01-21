@@ -1,146 +1,132 @@
+// app/api/contact/route.ts
 import { Resend } from "resend";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-function getResendKey(
-  val:
-    | "megavolt"
-    | "alfa"
-    | "megavolt"
-    | "atlas"
-    | "melisa"
-    | "nur"
-    | "argenta"
-    | "aegis"
-) {
-  const keys = {
+function getResendKey(companyName: string) {
+  const keys: Record<string, { key: string; email: string }> = {
     argenta: { key: process.env.RESEND_API_KEY!, email: "site@argentatek.com" },
     nur: { key: process.env.NUR!, email: "site@nuroverseas.com" },
     melisa: { key: process.env.MELISA!, email: "site@melisa.net.tr" },
-    atlas: { key: process.env.ATLAS!, email: "site@atlas-trade.org" },
-    megavolt: {
-      key: process.env.MEGAVOLT!,
-      email: "site@megavolt.com.tr",
-    },
+    atlas: { key: process.env.ATLAS!, email: "site@atlastrade.com.tr" },
+    megavolt: { key: process.env.MEGAVOLT!, email: "site@megavolt.com.tr" },
     alfa: { key: process.env.ALFA!, email: "site@alfa-trend.com.tr" },
     aegis: { key: process.env.AEGIS!, email: "site@aegisoverseas.ae" },
+    // Add more companies here as needed
   };
-  const { key, email } = keys[val];
 
-  const resend = new Resend(key);
-  console.log({ key, email });
-  return { resend, email };
+  const company = keys[companyName.toLowerCase()] || {
+    key: process.env.RESEND_API_KEY!,
+    email: "site@nuroverseas.com", // fallback
+  };
+
+  const resend = new Resend(company.key);
+  return { resend, email: company.email };
 }
 
-export async function POST(request: Request) {
-  // Define CORS headers
+export async function POST(request: NextRequest) {
+  // CORS Headers
   const origin = request.headers.get("origin") || "";
   const allowedOrigins = [
-    "http://localhost:3003",
-    "http://localhost:3001",
     "http://localhost:3000",
-    "https://lischor.online", // ✅ your live site
+    "http://localhost:3001",
+    "http://localhost:3003",
+    "https://yourdomain.com", // ← replace with your actual domain
   ];
-  const corsOrigin = allowedOrigins.includes(origin)
-    ? origin
-    : allowedOrigins[0]; // Fallback to a default
 
-  const headers = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "POST",
+  const corsHeaders = {
+    "Access-Control-Allow-Origin": allowedOrigins.includes(origin)
+      ? origin
+      : "*",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
   };
 
+  // Handle OPTIONS preflight request
+  if (request.method === "OPTIONS") {
+    return NextResponse.json({}, { status: 200, headers: corsHeaders });
+  }
+
   try {
-    const { email, message, name, service, companyname } = await request.json();
-    console.log({ companyname });
-    const { resend, email: receiveemail } = getResendKey(companyname);
+    const body = await request.json();
+    const { email, message, name, service, companyname } = body;
+
     if (!email || !message || !name || !companyname) {
       return NextResponse.json(
-        {
-          success: false,
-          message:
-            "Missing required fields: email, message, and name are required",
-        },
-        { status: 400, headers }
+        { success: false, message: "Missing required fields" },
+        { status: 400, headers: corsHeaders },
       );
     }
 
+    const { resend, email: receiveEmail } = getResendKey(companyname);
+
     const { data, error } = await resend.emails.send({
-      from: `${companyname} <onboarding@resend.dev>`,
-      to: [receiveemail, "tolulopebamisile@gmail.com", "info@nuroverseas.com"],
+      from: `Contact Form - ${companyname} <onboarding@resend.dev>`,
+      to: [receiveEmail, "tolulopebamisile@gmail.com", "info@nuroverseas.com"],
       replyTo: email,
-      subject: "Enquiry Regarding Services",
+      subject: `New Enquiry from ${name} - ${companyname}`,
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
-          <h2 style="color: #333; font-size: 24px; margin-bottom: 20px;">Service Enquiry</h2>
-          <p style="color: #555; font-size: 16px; line-height: 1.5;">
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e0e0e0; border-radius: 12px;">
+          <h2 style="color: #111; font-size: 24px; margin-bottom: 20px;">New Service Enquiry</h2>
+          <p style="color: #444; font-size: 16px; line-height: 1.6;">
             Dear Team,
           </p>
-          <p style="color: #555; font-size: 16px; line-height: 1.5;">
-            I hope this message finds you well. My name is <strong>${name}</strong>, and I am reaching out to enquire about your services${service ? `, specifically regarding ${service}` : ""}. Below are the details of my enquiry:
+          <p style="color: #444; font-size: 16px; line-height: 1.6;">
+            You have received a new enquiry from <strong>${name}</strong>:
           </p>
           <table style="width: 100%; margin: 20px 0; border-collapse: collapse;">
             <tr>
-              <td style="padding: 8px; font-size: 16px; color: #333; font-weight: bold; width: 30%;">Name:</td>
-              <td style="padding: 8px; font-size: 16px; color: #555;">${name}</td>
+              <td style="padding: 10px; font-weight: bold; width: 30%; color: #333;">Name:</td>
+              <td style="padding: 10px; color: #444;">${name}</td>
             </tr>
             <tr>
-              <td style="padding: 8px; font-size: 16px; color: #333; font-weight: bold;">Email:</td>
-              <td style="padding: 8px; font-size: 16px; color: #555;">${email}</td>
+              <td style="padding: 10px; font-weight: bold; color: #333;">Email:</td>
+              <td style="padding: 10px; color: #444;">${email}</td>
             </tr>
             ${
               service
-                ? `
-            <tr>
-              <td style="padding: 8px; font-size: 16px; color: #333; font-weight: bold;">Service:</td>
-              <td style="padding: 8px; font-size: 16px; color: #555;">${service}</td>
-            </tr>
-            `
+                ? `<tr>
+                    <td style="padding: 10px; font-weight: bold; color: #333;">Service:</td>
+                    <td style="padding: 10px; color: #444;">${service}</td>
+                  </tr>`
                 : ""
             }
             <tr>
-              <td style="padding: 8px; font-size: 16px; color: #333; font-weight: bold;">Message:</td>
-              <td style="padding: 8px; font-size: 16px; color: #555;">${message}</td>
+              <td style="padding: 10px; font-weight: bold; color: #333;">Company:</td>
+              <td style="padding: 10px; color: #444;">${companyname}</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px; font-weight: bold; color: #333; vertical-align: top;">Message:</td>
+              <td style="padding: 10px; color: #444; white-space: pre-wrap;">${message.replace(/\n/g, "<br>")}</td>
             </tr>
           </table>
-          <p style="color: #555; font-size: 16px; line-height: 1.5;">
-            I would appreciate a prompt response to discuss this matter further. Please feel free to contact me at the provided email address.
+          <p style="color: #444; font-size: 16px; line-height: 1.6;">
+            Please respond at your earliest convenience.
           </p>
-          <p style="color: #555; font-size: 16px; line-height: 1.5;">
-            Thank you for your time and consideration.
-          </p>
-          <p style="color: #555; font-size: 16px; line-height: 1.5;">
-            Best regards,<br>
-            ${name}
-          </p>
-          <hr style="border-top: 1px solid #e0e0e0; margin: 20px 0;">
+          <hr style="border-top: 1px solid #e0e0e0; margin: 24px 0;" />
           <p style="color: #888; font-size: 12px; text-align: center;">
-            This email was sent via your website's enquiry form.
+            Sent via website contact form • ${new Date().toISOString().split("T")[0]}
           </p>
         </div>
       `,
     });
 
     if (error) {
+      console.error("Resend error:", error);
       return NextResponse.json(
-        { success: false, message: error.message },
-        { status: 500, headers }
+        { success: false, message: "Failed to send email" },
+        { status: 500, headers: corsHeaders },
       );
     }
 
-    console.log({ data });
     return NextResponse.json(
-      {
-        success: true,
-        message: `Your message with id: ${data.id} is sent successfully to ${companyname} .`,
-      },
-      { headers }
+      { success: true, message: "Message sent successfully" },
+      { status: 200, headers: corsHeaders },
     );
-  } catch (error: any) {
-    console.error("Error sending email:", error);
+  } catch (error) {
+    console.error("Server error:", error);
     return NextResponse.json(
-      { success: false, message: error.message || "Internal server error" },
-      { status: 500, headers }
+      { success: false, message: "Internal server error" },
+      { status: 500, headers: corsHeaders },
     );
   }
 }
@@ -152,9 +138,9 @@ export async function OPTIONS() {
       status: 200,
       headers: {
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type",
       },
-    }
+    },
   );
 }
