@@ -3,6 +3,7 @@ import { Resend } from "resend";
 import { NextRequest, NextResponse } from "next/server";
 
 function getResendKey(companyName: string) {
+  console.log("Selected company:", companyName);
   const keys: Record<string, { key: string; email: string }> = {
     argenta: { key: process.env.RESEND_API_KEY!, email: "site@argentatek.com" },
     nur: { key: process.env.NUR!, email: "site@nuroverseas.com" },
@@ -19,6 +20,7 @@ function getResendKey(companyName: string) {
     email: "site@nuroverseas.com", // fallback
   };
 
+  console.log("Using Resend key for:", companyName, company);
   const resend = new Resend(company.key);
   return { resend, email: company.email };
 }
