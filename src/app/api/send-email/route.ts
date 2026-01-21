@@ -59,10 +59,10 @@ export async function POST(request: NextRequest) {
     }
 
     const { resend, email: receiveEmail } = getResendKey(companyname);
-
+console.log("Prepared to send email to:", receiveEmail);
     const { data, error } = await resend.emails.send({
       from: `Contact Form - ${companyname} <onboarding@resend.dev>`,
-      to: [receiveEmail, "tolulopebamisile@gmail.com", "info@nuroverseas.com"],
+      to: [receiveEmail],
       replyTo: email,
       subject: `New Enquiry from ${name} - ${companyname}`,
       html: `
