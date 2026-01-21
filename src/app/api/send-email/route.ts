@@ -16,8 +16,7 @@ function getResendKey(companyName: string) {
   };
 
   const company = keys[companyName.toLowerCase()] || {
-    key: process.env.RESEND_API_KEY!,
-    email: "site@nuroverseas.com", // fallback
+   key: process.env.RESEND_API_KEY!, email: "site@argentatek.com" 
   };
 
   console.log("Using Resend key for:", companyName, company);
